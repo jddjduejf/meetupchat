@@ -7,14 +7,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class a extends AppCompatActivity {
     @Override
-    protected void onCreate(Bundle b) {
-        super.onCreate(b);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent i = new Intent(this, d.class);
+        Intent intent = new Intent(this, d.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(i);
+            startForegroundService(intent);
         } else {
-            startService(i);
+            startService(intent);
         }
     }
 }

