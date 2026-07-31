@@ -1,0 +1,13 @@
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keepclasseswithmembernames class * { native <methods>; }
+-dontwarn
+-optimizationpasses 5
+-overloadaggressively
+-repackageclasses ''
+-allowaccessmodification
+-makepackageprivate
+-useuniqueclassmembernames
+-keepattributes *
+-dontpreverify
